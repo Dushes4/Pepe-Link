@@ -7,9 +7,10 @@
 </head>
 <body>
 
-<h1>Pepe Link<img src="{{url_for('static', filename='hat.png')}}" /></h1>
+<h1>Pepe Link<img src="{{url_for('static', filename='hat.png')}}" /></h1>  <h3>{{ logged_info.logged_user }}  </h3>
 
-<h5><a href="/new_post">Новый мем!</a> <a href="/home"> Главная</a> <a href="/user">Профиль</a> <a href="/home">Выйти</a></h5>
+<h3><a href="/new_post">Новый мем!</a> <a href="/home"> Главная</a> <a href="/user">Профиль</a>   <a href="/logout">{{logged_info.login_button}}</a>  <a href="/register">{{logged_info.register_button}}</a>  <a href="/logout">{{logged_info.logout_button}}</a> </h3>
+
 
 <div>
     {% for post in posts %}
