@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Главная страница</title>
+
+</head>
+<body>
+
+<h1>Pepe Link<img src="{{url_for('static', filename='hat.png')}}" /></h1>
+
+<h5><a href="/new_post">Новый мем!</a> <a href="/home"> Главная</a> <a href="/user">Профиль</a> <a href="/home">Выйти</a></h5>
+
+<div>
+    {% for post in posts %}
+    <h2>{{ post.title }}</h2>
+    <img src = "{{ post.picture_link }}" />
+    <h6>Дата: {{ post.date.date() }}</h6>
+    <h6>Автор: {{ post.user_id }}</h6>
+    <h6>Лайки: {{ post.likes }}</h6>
+    {% endfor %}
+</div>
+</body>
+</html>
