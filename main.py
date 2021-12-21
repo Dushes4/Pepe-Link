@@ -2,13 +2,22 @@ from flask import Flask, render_template, url_for, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_required, login_user, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from datetime import datetime
+from flask import send_from_directory
+from os.path import join, dirname, realpath
+import os
 import requests
+import upload
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'secret key'
+app.config['MAX_CONTENT_PATH'] = 20000000
+app.config['UPLOAD_FOLDER'] = join(dirname(realpath(__file__)), 'static/images/..')
+
+
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -18,9 +27,9 @@ class Post(db.Model, UserMixin):
     title = db.Column(db.String(300))
     post_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
-    picture_link = db.Column(db.String(300), nullable=False)
-    likes = db.Column(db.Integer)
+    filename = db.Column(db.String(300), nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
+    likes = db.Column(db.Integer)
 
     def __repr__(self):
         return '<Post %r>' % self.post_id
@@ -50,6 +59,12 @@ class User_auth(db.Model, UserMixin):
         return self.user_id
 
 
+class Like(db.Model):
+    like_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False)
+    post_id = db.Column(db.Integer, nullable=False)
+
+
 class Logged_info(object):
     def __init__(self, current_user):
         self.current_user = current_user
@@ -70,12 +85,36 @@ class Logged_info(object):
 @app.route('/home')
 def home():
     posts = Post.query.order_by(Post.post_id.desc()).all()
-    return render_template("home.html", posts=posts, logged_info=Logged_info(current_user))
+    users = User_auth.query.order_by(User_auth.user_id.desc()).all()
+    return render_template("home.html", posts=posts, logged_info=Logged_info(current_user), users=users)
 
 
 @app.route('/new_post', methods=['POST', 'GET'])
 @login_required
 def new_post():
+    upload_message = ''
+    if request.method == 'POST':
+        file = request.files['file']
+        title = request.form['title']
+        if file and upload.allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+            try:
+                last_post_id = Post.query.order_by(Post.post_id.desc()).first().post_id
+            except:
+                last_post_id = 0
+
+            new_post_db = Post(title=title, filename=filename, user_id=current_user.get_id(), likes=0, post_id=last_post_id+1)
+            db.session.add(new_post_db)
+            db.session.commit()
+
+            return redirect('/home')
+        else:
+            upload_message = 'Ваш фаел маст би jpg png или gif. Андерстэнд?'
+
+    return render_template("new_post.html", upload_message=upload_message)
+    '''
     upload_message = ''
     if request.method == "POST":
 
@@ -102,6 +141,7 @@ def new_post():
 
     else:
         return render_template("new_post.html", upload_message=upload_message)
+    '''
 
 
 @app.route('/login', methods=['POST', 'GET'])

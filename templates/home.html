@@ -14,11 +14,13 @@
 
 <div>
     {% for post in posts %}
-    <h2>{{ post.title }}</h2>
-    <img src = "{{ post.picture_link }}" />
-    <h6>Дата: {{ post.date.date() }}</h6>
-    <h6>Автор: {{ post.user_id }}</h6>
-    <h6>Лайки: {{ post.likes }}</h6>
+        <h2>{{ post.title }}</h2>
+        <img src = "{{ url_for('static', filename=post.filename) }}" />
+        <h6>Дата: {{ post.date.date() }}</h6>
+        <h6>Автор: {{ users[post.user_id-1].username }}</h6>
+        <h6>Лайки: {{ post.likes }}</h6>
+
+    
     {% endfor %}
 </div>
 </body>

@@ -8,11 +8,13 @@
 
     <h1>ЗАГРУЗИТЬ ТУПОЙ МЕМ</h1>
 
-    <form method="post">
-        <input type="text" name="title" id="title"><br>
-        <input type="text" name="picture_link" id="picture_link"><br>
-        <input type="submit" value="Загрузить"><br>
+    <form action="" method=post enctype=multipart/form-data>
+      <p><input type=file name=file>
+          <input type="text" name="title" id="title" placeholder="Заголовок"><br>
+         <input type=submit value=Upload>
     </form>
+
+
 
     {{ upload_message }}
 </body>
