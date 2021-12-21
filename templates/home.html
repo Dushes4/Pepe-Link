@@ -5,6 +5,10 @@
     <title>Главная страница</title>
 
 </head>
+
+
+
+
 <body>
 
 <h1>Pepe Link<img src="{{url_for('static', filename='hat.png')}}" /></h1>  <h3>{{ logged_info.logged_user }}  </h3>
@@ -18,8 +22,14 @@
         <img src = "{{ url_for('static', filename=post.filename) }}" />
         <h6>Дата: {{ post.date.date() }}</h6>
         <h6>Автор: {{ users[post.user_id-1].username }}</h6>
-        <h6>Лайки: {{ post.likes }}</h6>
-
+        <h6>Лайки: {{ post.likes.count() }}</h6>
+        {% if current_user.is_authenticated %}
+            {% if current_user.has_liked_post(post) %}
+                <a href="{{ url_for('like_action', post_id=post.id, action='unlike') }}">Unlike</a>
+            {% else %}
+                <a href="{{ url_for('like_action', post_id=post.id, action='like') }}">Like</a>
+            {% endif %}
+        {% endif %}
 
     {% endfor %}
 </div>

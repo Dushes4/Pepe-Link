@@ -25,14 +25,15 @@ login_manager.login_view = 'login'
 
 class Post(db.Model, UserMixin):
     title = db.Column(db.String(300))
-    post_id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     filename = db.Column(db.String(300), nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
-    likes = db.Column(db.Integer)
+
+    likes = db.relationship('Like', backref='post', lazy='dynamic')
 
     def __repr__(self):
-        return '<Post %r>' % self.post_id
+        return '<Post %r>' % self.id
 
 
 @login_manager.user_loader
@@ -47,6 +48,24 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(64), nullable=False)
     posts = db.relationship('Post', backref='author', lazy='dynamic')
 
+    liked = db.relationship('Like', foreign_keys='Like.user_id', backref='user', lazy='dynamic')
+
+    def like_post(self, post):
+        if not self.has_liked_post(post):
+            like = Like(user_id=self.id, post_id=post.id)
+            db.session.add(like)
+
+    def unlike_post(self, post):
+        if self.has_liked_post(post):
+            Like.query.filter_by(
+                user_id=self.id,
+                post_id=post.id).delete()
+
+    def has_liked_post(self, post):
+        return Like.query.filter(
+            Like.user_id == self.id,
+            Like.post_id == post.id).count() > 0
+
     def set_password(self, password):
         self.password = generate_password_hash(password)
 
@@ -60,12 +79,10 @@ class User(db.Model, UserMixin):
         return self.id
 
 
-'''
 class Like(db.Model):
-    like_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False)
-    post_id = db.Column(db.Integer, nullable=False)
-'''
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
 
 
 class Logged_info(object):
@@ -87,9 +104,22 @@ class Logged_info(object):
 @app.route('/')
 @app.route('/home')
 def home():
-    posts = Post.query.order_by(Post.post_id.desc()).all()
+    posts = Post.query.order_by(Post.id.desc()).all()
     users = User.query.order_by(User.id.desc()).all()
     return render_template("home.html", posts=posts, logged_info=Logged_info(current_user), users=users)
+
+
+@app.route('/like/<int:post_id>/<action>')
+@login_required
+def like_action(post_id, action):
+    post = Post.query.filter_by(id=post_id).first_or_404()
+    if action == 'like':
+        current_user.like_post(post)
+        db.session.commit()
+    if action == 'unlike':
+        current_user.unlike_post(post)
+        db.session.commit()
+    return redirect(request.referrer)
 
 
 @app.route('/new_post', methods=['POST', 'GET'])
@@ -102,7 +132,7 @@ def new_post():
         if file and upload.allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            new_post_db = Post(title=title, filename=filename, user_id=current_user.get_id(), likes=0)
+            new_post_db = Post(title=title, filename=filename, user_id=current_user.get_id())
             db.session.add(new_post_db)
             db.session.commit()
             return redirect('/home')
