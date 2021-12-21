@@ -26,7 +26,7 @@ login_manager.login_view = 'login'
 class Post(db.Model, UserMixin):
     title = db.Column(db.String(300))
     post_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     filename = db.Column(db.String(300), nullable=False)
     date = db.Column(db.DateTime, default=datetime.utcnow)
     likes = db.Column(db.Integer)
@@ -37,14 +37,15 @@ class Post(db.Model, UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return db.session.query(User_auth).get(user_id)
+    return db.session.query(User).get(user_id)
 
 
-class User_auth(db.Model, UserMixin):
-    user_id = db.Column(db.Integer, primary_key=True)
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False)
     email = db.Column(db.String(50), nullable=False)
     password = db.Column(db.String(64), nullable=False)
+    posts = db.relationship('Post', backref='author', lazy='dynamic')
 
     def set_password(self, password):
         self.password = generate_password_hash(password)
@@ -56,13 +57,15 @@ class User_auth(db.Model, UserMixin):
         return "{}".format(self.username)
 
     def get_id(self):
-        return self.user_id
+        return self.id
 
 
+'''
 class Like(db.Model):
     like_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
     post_id = db.Column(db.Integer, nullable=False)
+'''
 
 
 class Logged_info(object):
@@ -85,7 +88,7 @@ class Logged_info(object):
 @app.route('/home')
 def home():
     posts = Post.query.order_by(Post.post_id.desc()).all()
-    users = User_auth.query.order_by(User_auth.user_id.desc()).all()
+    users = User.query.order_by(User.id.desc()).all()
     return render_template("home.html", posts=posts, logged_info=Logged_info(current_user), users=users)
 
 
@@ -99,49 +102,13 @@ def new_post():
         if file and upload.allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-            try:
-                last_post_id = Post.query.order_by(Post.post_id.desc()).first().post_id
-            except:
-                last_post_id = 0
-
-            new_post_db = Post(title=title, filename=filename, user_id=current_user.get_id(), likes=0, post_id=last_post_id+1)
+            new_post_db = Post(title=title, filename=filename, user_id=current_user.get_id(), likes=0)
             db.session.add(new_post_db)
             db.session.commit()
-
             return redirect('/home')
         else:
             upload_message = 'Ваш фаел маст би jpg png или gif. Андерстэнд?'
-
     return render_template("new_post.html", upload_message=upload_message)
-    '''
-    upload_message = ''
-    if request.method == "POST":
-
-        title = request.form['title']
-        picture_link = request.form['picture_link']
-
-        try:
-            last_post_id = Post.query.order_by(Post.post_id.desc()).first().post_id
-        except:
-            last_post_id = 0
-
-        try:
-            if (requests.get(picture_link).headers['Content-Type']) in (
-                    'image/gif', 'image/png', 'image/jpg', 'image/jpeg'):
-                new_post_db = Post(title=title, picture_link=picture_link, user_id=1, post_id=last_post_id + 1, likes=0)
-                db.session.add(new_post_db)
-                db.session.commit()
-                upload_message = 'Тупой мем загружен'
-            else:
-                upload_message = 'Ваш фаел маст би jpg png или gif. Андерстэнд?'
-        except:
-            upload_message = 'Ваш фаел маст би jpg png или gif. Андерстэнд?'
-        return render_template("new_post.html", upload_message=upload_message)
-
-    else:
-        return render_template("new_post.html", upload_message=upload_message)
-    '''
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -154,7 +121,7 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        user_to_login = db.session.query(User_auth).filter(User_auth.username == username).first()
+        user_to_login = db.session.query(User).filter(User.username == username).first()
         try:
             if user_to_login.check_password(password):
                 login_user(user_to_login)
@@ -178,23 +145,18 @@ def register():
         password = request.form.get('password')
         email = request.form.get('email')
 
-        try:
-            last_user_id = User_auth.query.order_by(User_auth.user_id.desc()).first().user_id
-
-        except:
-            last_user_id = 0
-
-        try:
-            if str(db.session.query(User_auth).filter(User_auth.username == username).first()) != str(username):
-                new_user_db = User_auth(user_id=last_user_id + 1, username=username, email=email)
-                new_user_db.set_password(password)
-                db.session.add(new_user_db)
-                db.session.commit()
-                return redirect('/login')
-            else:
-                message = 'Пользователь с таким именем уже существует'
-        except:
+        if username == '' or password == '' or email == '':
             message = 'Проверьте корректность данных'
+            return render_template("register.html", message=message)
+
+        if str(db.session.query(User).filter(User.username == username).first()) != str(username):
+            new_user_db = User(username=username, email=email)
+            new_user_db.set_password(password)
+            db.session.add(new_user_db)
+            db.session.commit()
+            return redirect('/login')
+        else:
+            message = 'Пользователь с таким именем уже существует'
 
     return render_template("register.html", message=message)
 
