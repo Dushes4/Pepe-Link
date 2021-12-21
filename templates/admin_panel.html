@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель администратора</title>
+</head>
+<body>
+
+
+
+    <h1>ПАНЕЛЬ АДМИНИСТРАТОРА</h1>
+
+    <form method="post">
+        <input type="submit" value="Подтвердить">
+        <table border="1px solid">
+        <tr><td>ID</td><td>Имя</td><td>Email</td><td>Администратор</td><td>Удалить</td></tr>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.id }}</td><td>{{ user.username }}</td><td>{{ user.email }}</td><td>{{ user.is_admin }}</td>
+            <td> <input type="checkbox" id="{{ user.id }}" name="delete{{user.id}}"> </td>
+        </tr>
+        {% endfor %}
+        </table>
+    </form>
+
+    {{ message }}
+
+</body>
+</html>

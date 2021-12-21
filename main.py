@@ -97,7 +97,7 @@ class Profile_data(db.Model):
 @app.route('/home')
 def home():
     posts = Post.query.order_by(Post.id.desc()).all()
-    users = User.query.order_by(User.id.desc()).all()
+    users = User.query.order_by(User.id.desc())
     return render_template("home.html", posts=posts, users=users)
 
 
@@ -112,6 +112,19 @@ def like_action(post_id, action):
         current_user.unlike_post(post)
         db.session.commit()
     return redirect(request.referrer)
+
+
+@app.route('/delete/<int:post_id>')
+@login_required
+def delete_post(post_id):
+    if not User.query.get(current_user.get_id()).is_admin:
+        return '<h2>Вы не обладаете правами администратора</h2><br><a href ="/home">Вернуться</a>'
+
+    Post.query.filter_by(id=post_id).delete()
+    Like.query.filter_by(post_id=post_id).delete()
+    db.session.commit()
+
+    return redirect('/home')
 
 
 @app.route('/new_post', methods=['POST', 'GET'])
@@ -247,6 +260,40 @@ def user(user_id):
     if user_data is None:
         return '<h2>Похоже, такого пользователя не существует</h2><br><a href ="/home">Вернуться</a>'
     return render_template("user.html", profile_data=profile_data, user=user_data)
+
+
+@app.route('/admin_panel', methods=['POST', 'GET'])
+@login_required
+def admin_panel():
+    if not User.query.get(current_user.get_id()).is_admin:
+        return '<h2>Вы не обладаете правами администратора</h2><br><a href ="/home">Вернуться</a>'
+
+    message = ''
+    users = User.query.order_by(User.id.desc()).all()
+
+    if request.method == 'POST':
+        users_to_delete = ['#']
+        for user_id in range(1, User.query.order_by(User.id.desc()).first().id + 1):
+            if str(request.form.get('delete'+str(user_id))) == 'on':
+                users_to_delete.append(user_id)
+
+        for user_to_delete in users_to_delete:
+            User.query.filter_by(id=user_to_delete).delete()
+            Profile_data.query.filter_by(user_id=user_to_delete).delete()
+            db.session.commit()
+        message = 'Пользователи успешно удалены'
+
+    users = User.query.order_by(User.id.desc()).all()
+    return render_template("admin_panel.html", users=users, message=message)
+
+
+@app.route('/overlap')
+@login_required
+def overlap():
+    if Like.query.filter_by(user_id=current_user.get_id()).count() < 3:
+        return '<h2>Вы должны лайкнуть как минимум 3 поста, чтобы получить совпадения</h2><br><a href ="/home">Вернуться</a>'
+    message = ''
+    return render_template("overlap.html", message=message)
 
 
 if __name__ == "__main__":
