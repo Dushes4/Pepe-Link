@@ -31,20 +31,25 @@
     <a href="/register">Регистрация</a>
 {% endif %}
 
-
+{% if current_user.is_authenticated and users.get(current_user.get_id()).is_admin %}
+<a href="/admin_panel">Панель администратора</a>
+{% endif %}
 
 <div>
     {% for post in posts %}
         <h2>{{ post.title }}</h2>
         <img src = "{{ url_for('static', filename=post.filename) }}" />
         <h6>Дата: {{ post.date.date() }}</h6>
-        <h6>Автор: {{ users[post.user_id-1].username }}</h6>
+        <h6>Автор: {{ users.get(post.user_id).username }}</h6>
         <h6>Лайки: {{ post.likes.count() }}</h6>
         {% if current_user.is_authenticated %}
             {% if current_user.has_liked_post(post) %}
                 <a href="{{ url_for('like_action', post_id=post.id, action='unlike') }}">Unlike</a>
             {% else %}
                 <a href="{{ url_for('like_action', post_id=post.id, action='like') }}">Like</a>
+            {% endif %}
+            {% if current_user.is_authenticated and users.get(current_user.get_id()).is_admin %}
+                <a href="/delete/{{ post.id }}">delete</a>
             {% endif %}
         {% endif %}
 
