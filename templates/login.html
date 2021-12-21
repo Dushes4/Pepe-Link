@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Регистрация</title>
+    <title>Вход</title>
 </head>
 <body>
 
@@ -11,7 +11,7 @@
 	<spam class="{{ category }}">{{ message }}</spam>
     {% endfor %}
 
-    {{ message }}
+
 
     <h1>АВТОРИЗАЦИЯ</h1>
 
@@ -21,8 +21,8 @@
         <input type="submit" value="Войти"><br>
     </form>
 
+    {{ message }}
 
-
-    <h3>Еще нет аккаунта? <a href="/register">{{logged_info.register_button}}</a></h3>
+    <h3>Еще нет аккаунта? <a href="/register">Зарегистрироваться</a></h3>
 </body>
 </html>

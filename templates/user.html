@@ -6,13 +6,23 @@
 </head>
 <body>
 
-<h2>Logged in User details</h2>
+<h3> Профиль пользователя {{ user.username }} </h3><br>
+
 
 <ul>
-    <li>Username: {{ current_user.username }}</li>
-    <li>Email: {{ current_user.password }}</li>
-
+    <li> Возраст: {{ profile_data.age }} </li><br>
+    {% if profile_data.gender == "male" %}
+        <li> Пол: Мужской </li><br>
+    {% else %}
+        <li> Пол: Женский </li><br>
+    {% endif %}
+    <li> Хобби: {{ profile_data.hobby }} </li><br>
+    <li> Контакты: {{ profile_data.contacts }} </li><br>
 </ul>
+
+{% if current_user.get_id() == user.id %}
+    <a href="/profile_edit">Редактировать профиль</a>
+{% endif %}
 
 </body>
 </html>
