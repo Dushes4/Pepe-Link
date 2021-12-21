@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация</title>
+</head>
+<body>
+
+
+    {% for category, message in  get_flashed_messages(with_categories=true) %}
+	<spam class="{{ category }}">{{ message }}</spam>
+    {% endfor %}
+
+    {{ message }}
+
+    <h1>АВТОРИЗАЦИЯ</h1>
+
+    <form method="post">
+        <input type="text" name="username" id="username" placeholder="username"><br>
+        <input type="text" name="password" id="password" placeholder="password"><br>
+        <input type="submit" value="Войти"><br>
+    </form>
+
+
+
+    <h3>Еще нет аккаунта? <a href="/register">{{logged_info.register_button}}</a></h3>
+</body>
+</html>
