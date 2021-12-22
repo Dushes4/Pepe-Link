@@ -1,59 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Главная страница</title>
+{% extends 'base.html' %}
 
-</head>
+{% block title %}Главная страница{% endblock %}
 
+{% block body %}
 
-
-
-<body>
-
-<h1>Pepe Link<img src="{{url_for('static', filename='hat.png')}}" /></h1>
-
-<h3>
-{% if current_user.is_authenticated %}
-    <h3> Авторизован {{ current_user }} </h3>
-{% else %}
-    <h3> Вы не авторизованы </h3>
-{% endif %}
-</h3>
-
-
-
-{% if current_user.is_authenticated %}
-    <h3><a href="/new_post">Новый мем!</a> <a href="/home"> Главная</a> <a href="/user/{{current_user.get_id()}}">Профиль</a> </h3>
-    <a href="/logout">Выход</a>
-{% else %}
-    <a href="/login">Вход</a>
-    <a href="/register">Регистрация</a>
-{% endif %}
-
-{% if current_user.is_authenticated and users.get(current_user.get_id()).is_admin %}
-<a href="/admin_panel">Панель администратора</a>
-{% endif %}
-
-<div>
-    {% for post in posts %}
-        <h2>{{ post.title }}</h2>
-        <img src = "{{ url_for('static', filename=post.filename) }}" />
-        <h6>Дата: {{ post.date.date() }}</h6>
-        <h6>Автор: {{ users.get(post.user_id).username }}</h6>
-        <h6>Лайки: {{ post.likes.count() }}</h6>
-        {% if current_user.is_authenticated %}
-            {% if current_user.has_liked_post(post) %}
-                <a href="{{ url_for('like_action', post_id=post.id, action='unlike') }}">Unlike</a>
-            {% else %}
-                <a href="{{ url_for('like_action', post_id=post.id, action='like') }}">Like</a>
-            {% endif %}
-            {% if current_user.is_authenticated and users.get(current_user.get_id()).is_admin %}
-                <a href="/delete/{{ post.id }}">delete</a>
-            {% endif %}
+        {% if current_user.is_authenticated and logged_user.is_admin %}
+            <br>
+            <div align="center"><a href="/admin_panel"> Админ панель</a></div>
         {% endif %}
 
+    {% for post in posts %}
+
+    <div class="post">
+        <div align="center"><h2>{{ post.title }}</h2></div>
+        <img class="post-picture" src = "{{ url_for('static', filename=post.filename) }}" />
+
+
+
+
+        <div class="post-footer">
+            <div class="post-like">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.has_liked_post(post) %}
+                        <a href="{{ url_for('like_action', post_id=post.id, action='unlike') }}"><img src="{{url_for('static', filename='liked.png')}}" /> {{ post.likes.count() }}</a>
+                    {% else %}
+                        <a href="{{ url_for('like_action', post_id=post.id, action='like') }}"><img src="{{url_for('static', filename='like.png')}}" />{{ post.likes.count() }}</a>
+                    {% endif %}
+                {% else %}
+                    <img src="{{url_for('static', filename='like.png')}}" /> {{ post.likes.count() }}
+                {% endif %}
+
+            </div>
+
+            <div class="post-data">
+                {{ post.date.date() }} | <a href="/user/{{post.user_id}}">{{ users.get(post.user_id).username }}</a>
+            </div>
+
+        </div>
+        <div align="center">
+        {% if current_user.is_authenticated and users.get(current_user.get_id()).is_admin %}
+            <a href="/delete/{{ post.id }}">Удалить пост</a>
+        {% endif %}
+        </div>
+
+
+
+    </div>
     {% endfor %}
-</div>
-</body>
-</html>
+
+{% endblock %}

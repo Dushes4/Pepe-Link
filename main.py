@@ -96,9 +96,10 @@ class Profile_data(db.Model):
 @app.route('/')
 @app.route('/home')
 def home():
+    logged_user = User.query.get(current_user.get_id())
     posts = Post.query.order_by(Post.id.desc()).all()
     users = User.query.order_by(User.id.desc())
-    return render_template("home.html", posts=posts, users=users)
+    return render_template("home.html", posts=posts, users=users, logged_user=logged_user)
 
 
 @app.route('/like/<int:post_id>/<action>')
@@ -130,6 +131,7 @@ def delete_post(post_id):
 @app.route('/new_post', methods=['POST', 'GET'])
 @login_required
 def new_post():
+    logged_user = User.query.get(current_user.get_id())
     upload_message = ''
     if request.method == 'POST':
         file = request.files['file']
@@ -143,11 +145,12 @@ def new_post():
             return redirect('/home')
         else:
             upload_message = 'Ваш фаел маст би jpg png или gif. Андерстэнд?'
-    return render_template("new_post.html", upload_message=upload_message)
+    return render_template("new_post.html", upload_message=upload_message, logged_user=logged_user)
 
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
+    logged_user = User.query.get(current_user.get_id())
     if current_user.is_authenticated:
         return redirect('/home')
     message = ''
@@ -162,15 +165,16 @@ def login():
                 login_user(user_to_login)
                 return redirect('/home')
             else:
-                message = "Wrong username or password"
+                message = "Неверное имя пользователя или пароль"
         except:
-            message = "Wrong username or password"
+            message = "Неверное имя пользователя или пароль"
 
-    return render_template("login.html", message=message)
+    return render_template("login.html", message=message, logged_user=logged_user)
 
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
+    logged_user = User.query.get(current_user.get_id())
     if current_user.is_authenticated:
         return redirect('/home')
 
@@ -204,7 +208,7 @@ def register():
         else:
             message = 'Пользователь с таким именем уже существует'
 
-    return render_template("register.html", message=message)
+    return render_template("register.html", message=message, logged_user=logged_user)
 
 
 @app.route('/logout')
@@ -217,6 +221,7 @@ def logout():
 @app.route('/profile_edit', methods=['POST', 'GET'])
 @login_required
 def profile_edit():
+    logged_user = User.query.get(current_user.get_id())
     profile_data = Profile_data.query.get(current_user.get_id())
     user_data = User.query.get(current_user.get_id())
     message = ''
@@ -249,12 +254,13 @@ def profile_edit():
         db.session.commit()
         return redirect('/user/' + str(current_user.get_id()))
 
-    return render_template("profile_edit.html", profile_data=profile_data, user=user_data, message=message)
+    return render_template("profile_edit.html", profile_data=profile_data, user=user_data, message=message, logged_user=logged_user)
 
 
 @app.route('/user/<int:user_id>')
 @login_required
 def user(user_id):
+    logged_user = User.query.get(current_user.get_id())
     profile_data = Profile_data.query.get(user_id)
     user_data = User.query.get(user_id)
 
@@ -264,12 +270,13 @@ def user(user_id):
 
     if user_data is None:
         return '<h2>Похоже, такого пользователя не существует</h2><br><a href ="/home">Вернуться</a>'
-    return render_template("user.html", profile_data=profile_data, user=user_data, show_overlap=show_overlap)
+    return render_template("user.html", profile_data=profile_data, user=user_data, show_overlap=show_overlap, logged_user=logged_user)
 
 
 @app.route('/admin_panel', methods=['POST', 'GET'])
 @login_required
 def admin_panel():
+    logged_user = User.query.get(current_user.get_id())
     if not User.query.get(current_user.get_id()).is_admin:
         return '<h2>Вы не обладаете правами администратора</h2><br><a href ="/home">Вернуться</a>'
 
@@ -289,12 +296,13 @@ def admin_panel():
         message = 'Пользователи успешно удалены'
 
     users = User.query.order_by(User.id.desc()).all()
-    return render_template("admin_panel.html", users=users, message=message)
+    return render_template("admin_panel.html", users=users, message=message, logged_user=logged_user)
 
 
 @app.route('/overlap')
 @login_required
 def overlap():
+    logged_user = User.query.get(current_user.get_id())
     if Like.query.filter_by(user_id=current_user.get_id()).count() < 3:
         return '<h2>Вы должны лайкнуть как минимум 3 поста, чтобы получить совпадения</h2><br><a href ="/home">Вернуться</a>'
     message = ''
@@ -315,7 +323,7 @@ def overlap():
 
     print(overlaps)
     count = min([len(overlaps), 5])
-    return render_template("overlap.html", message=message, overlaps=overlaps, count=count)
+    return render_template("overlap.html", message=message, overlaps=overlaps, count=count, logged_user=logged_user)
 
 
 if __name__ == "__main__":

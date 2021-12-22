@@ -1,0 +1,149 @@
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #AAC3FF;
+    color: #333;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 1em;
+    line-height: 135%;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+
+}
+header {
+    width: 98%;
+    height: 50px;
+    float: top;
+    padding: 1%;
+    background: white;
+    border: 1px solid black;
+    font-size: 1.2em;
+}
+header #logo {
+margin-top: 5px;
+    width: 8%;
+    float: left;
+}
+header #pepe {
+margin-top: 15px;
+    width: 36%;
+    float: left;
+}
+header #menuHead {
+    margin-top: 15px;
+    width: 37%;
+    float: left;
+}
+header #regAuth {
+    width: 19%;
+    float: right;
+    margin-top: 15px;
+}
+
+.post {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid black;
+    width: 330px;
+    margin-top: 20px;
+    background-color: white;
+}
+
+.post-picture {
+    width: 300px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid black;
+}
+
+
+.post-footer {
+    display: block;
+    width: 300px;
+    height: 50px;
+}
+
+.post-data {
+    display: inline-block;
+    float: right;
+    margin-top: 10px;
+    margin-right: -5px;
+
+
+
+
+}
+
+.post-like {
+    margin-left: 10px;
+    margin-top: 2px;
+    display: inline-block;
+    float: left;
+    clear: right;
+
+    font-size: 1.5em;
+
+}
+
+.form-border {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid black;
+    width: 210px;
+    margin-top: 20px;
+    background-color: white;
+}
+
+.form-text {
+    float:left;
+    padding-left: 12px;
+}
+
+.form-submit {
+    width: 185px;
+    margin-top:10px;
+    margin-bottom:10px;
+
+}
+input {
+    width: 180px;
+}
+
+li {
+    margin:-5px;
+}
+
+.edit {
+    margin-top:-20px;
+    text-align: center;
+    padding-bottom: 10px;
+    border: 1px solid black;
+    padding: 0;
+}
+
+.form-border-in {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid black;
+    width: 210px;
+    margin-top: 20px;
+    background-color: white;
+}
+
+table {
+  border-collapse: collapse;
+  background-color: white;
+}
+
+td {
+    padding: 10px;
+}
