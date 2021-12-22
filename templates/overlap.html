@@ -5,6 +5,18 @@
     <title>Совпадения</title>
 </head>
 <body>
+    <h1>СОВПАДЕНИЯ</h1>
+
+
+    <table border="1px solid">
+    <tr><td>Имя</td> <td>Количество совпадений</td> </tr>
+    {% for i in range(count) %}
+        {% if overlaps[i][0] > 0 %}
+            <tr> <td><a href="/user/{{overlaps[i][1]}}"> {{overlaps[i][2]}}</a></td> <td>{{overlaps[i][0]}}</td> </tr>
+        {% endif %}
+
+    {% endfor %}
+    </table>
 
 </body>
 </html>

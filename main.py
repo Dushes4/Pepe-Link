@@ -257,9 +257,14 @@ def profile_edit():
 def user(user_id):
     profile_data = Profile_data.query.get(user_id)
     user_data = User.query.get(user_id)
+
+    show_overlap = False
+    if Like.query.filter_by(user_id=current_user.get_id()).count() >= 3 and current_user.get_id() == user_id:
+        show_overlap = True
+
     if user_data is None:
         return '<h2>Похоже, такого пользователя не существует</h2><br><a href ="/home">Вернуться</a>'
-    return render_template("user.html", profile_data=profile_data, user=user_data)
+    return render_template("user.html", profile_data=profile_data, user=user_data, show_overlap=show_overlap)
 
 
 @app.route('/admin_panel', methods=['POST', 'GET'])
@@ -293,7 +298,24 @@ def overlap():
     if Like.query.filter_by(user_id=current_user.get_id()).count() < 3:
         return '<h2>Вы должны лайкнуть как минимум 3 поста, чтобы получить совпадения</h2><br><a href ="/home">Вернуться</a>'
     message = ''
-    return render_template("overlap.html", message=message)
+
+    overlaps = []
+    users = User.query.order_by(User.id.desc()).all()
+    for user_to_check in users:
+        if user_to_check.id != current_user.get_id():
+            overlaps.append([0, user_to_check.id, user_to_check.username])
+
+    for user_to_check in overlaps:
+        user_id = user_to_check[1]
+        user_likes = Like.query.filter_by(user_id=user_id).all()
+        for like in user_likes:
+            if Like.query.filter_by(user_id=current_user.get_id(), post_id=like.post_id).count()>0:
+                user_to_check[0] += 1
+    overlaps.sort(reverse=True)
+
+    print(overlaps)
+    count = min([len(overlaps), 5])
+    return render_template("overlap.html", message=message, overlaps=overlaps, count=count)
 
 
 if __name__ == "__main__":
