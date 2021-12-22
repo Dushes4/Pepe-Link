@@ -1,34 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-<h3> Профиль пользователя {{ user.username }} </h3><br>
+{% block title %}Профиль{% endblock %}
+
+{% block body %}
 
 
-<ul>
-    <li> Возраст: {{ profile_data.age }} </li><br>
-    {% if profile_data.gender == "male" %}
-        <li> Пол: Мужской </li><br>
+<div align="center">
+<h1> Профиль пользователя {{ user.username }} </h1>
+        <div class="form-border-out">
+            <div class="form-border-in" align="left">
+                <ul>
+                    <li> Возраст: {{ profile_data.age }} </li><br>
+                    {% if profile_data.gender == "male" %}
+                        <li> Пол: Мужской </li><br>
+                    {% else %}
+                        <li> Пол: Женский </li><br>
+                    {% endif %}
+                    <li> Хобби: {{ profile_data.hobby }} </li><br>
+                    <li> Контакты: {{ profile_data.contacts }} </li><br>
+                </ul>
+                <div class="edit">
+                    {% if current_user.get_id() == user.id %}
+                    <a href="/profile_edit">Редактировать профиль</a>
+                </div>
+            </div>
+        </div>
+
+
+    {% if show_overlap == True %}
+        <h2><a href="/overlap">Показать совпадения</a></h2>
     {% else %}
-        <li> Пол: Женский </li><br>
+        <h5>Вы должны лайкнуть как минимум 3 поста, чтобы получить совпадения</h5>
     {% endif %}
-    <li> Хобби: {{ profile_data.hobby }} </li><br>
-    <li> Контакты: {{ profile_data.contacts }} </li><br>
-</ul>
-
-{% if current_user.get_id() == user.id %}
-    <a href="/profile_edit">Редактировать профиль</a>
 {% endif %}
 
-{% if show_overlap == True %}
-    <h2><a href="/overlap">Показать совпадения</a></h2>
-{% else %}
-    <h2>Вы должны лайкнуть как минимум 3 поста, чтобы получить совпадения</h2>
-{% endif %}
+</div>
 
-</body>
-</html>
+
+{% endblock %}

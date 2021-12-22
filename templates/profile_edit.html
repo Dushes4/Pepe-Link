@@ -1,34 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
+{% block title %}Редактирование профиля{% endblock %}
 
-<h1>РЕДАКТИРОВАНИЕ ПРОФИЛЯ</h1>
-<form method="post">
-        <input type="text" name="username" id="username" placeholder="username" value="{{ user.username }}"><br>
+{% block body %}
 
-        <br>
-        <input type="text" name="age" id="age" placeholder="Возраст" value="{{ profile_data.age }}"><br>
-        <p><select size="2" multiple name="gender">
-            <option disabled>Пол</option>
+<div align="center">
+    <h1>РЕДАКТИРОВАНИЕ ПРОФИЛЯ</h1>
+    <div class="form-border">
+    <form method="post">
+
+        <div class="form-text">Имя:<br></div>
+        <input type="text" name="username" id="username" value="{{ user.username }}"><br>
+
+        <div class="form-text">Возраст:<br></div>
+        <input type="text" name="age" id="age" value="{{ profile_data.age }}"><br>
+
+        <div class="form-text">Пол:<br></div>
+        <select size="2" class="form-submit" multiple name="gender">
             <option selected value="male">Мужской</option>
             <option value="female">Женский</option>
-        </select></p>
-
-        <input type="text" name="hobby" id="hobby" placeholder="Хобби" value="{{ profile_data.hobby}}"><br>
+        </select>
+        <div class="form-text">Хобби:<br></div>
+        <input type="text" name="hobby" id="hobby"value="{{ profile_data.hobby}}"><br>
+        <div class="form-text">Контактная информация:<br></div>
         <input type="text" name="contacts" id="contacts" placeholder="Контактная информация" value="{{profile_data.contacts}}"><br>
 
 
 
 
-        <input type="submit" value="Сохранить"><br>
+        <input type="submit" class="form-submit" value="Сохранить"><br>
     </form>
+    </div>
 
     {{message}}
-
-</body>
-</html>
+</div>
+{% endblock %}

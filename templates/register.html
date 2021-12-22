@@ -1,35 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Регистрация</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block body %}
+
+    <div align="center">
+        <h1>РЕГИСТРАЦИЯ</h1>
+        <div class="form-border" width="190px">
+            <form method="post">
+                <div class="form-text">Имя:<br></div>
+                <input type="text" name="username" id="username"><br>
+                <div class="form-text">Пароль:<br></div>
+                <input type="text" name="password" id="password"><br>
+                <div class="form-text">Электронная почта:<br></div>
+                <input type="text" name="email" id="email"><br>
+                <div class="form-text">Возраст:<br></div>
+
+                <input type="text" name="age" id="age"><br>
+                <div class="form-text">Пол:<br></div>
+                <select size="2" class="form-submit" multiple name="gender">
+                    <option selected value="male">Мужской</option>
+                    <option value="female">Женский</option>
+                </select>
+                <div class="form-text">Хобби:<br></div>
+                <input type="text" name="hobby" id="hobby"><br>
+                <div class="form-text">Контактная информация:<br></div>
+                <input type="text" name="contacts" id="contacts"><br>
 
 
-    <h1>РЕГИСТРАЦИЯ</h1>
-    <form method="post">
-        <input type="text" name="username" id="username" placeholder="username"><br>
-        <input type="text" name="password" id="password" placeholder="password"><br>
-        <input type="text" name="email" id="email" placeholder="email"><br>
-
-        <br>
-        <input type="text" name="age" id="age" placeholder="Возраст"><br>
-        <p><select size="2" multiple name="gender">
-            <option disabled>Пол</option>
-            <option selected value="male">Мужской</option>
-            <option value="female">Женский</option>
-        </select></p>
-
-        <input type="text" name="hobby" id="hobby" placeholder="Хобби"><br>
-        <input type="text" name="contacts" id="contacts" placeholder="Контактная информация"><br>
 
 
+                <input class="form-submit" type="submit" value="Зарегистрироваться"><br>
+            </form>
+        </div>
+    </div>
 
 
-        <input type="submit" value="Зарегистрироваться"><br>
-    </form>
+    <font color="red">
+        <div align="center">
+        {{ message }}
+        </div>
+    </font>
 
-    {{message}}
-</body>
-</html>
+{% endblock %}

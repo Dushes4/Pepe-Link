@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+</head>
+
+<body>
+
+
+<header>
+    <div id="logo">
+        <a href="/home"><img src="{{url_for('static', filename='hat.png')}}" /></a>
+    </div>
+
+    <div id="pepe">
+        <a href="/home">Pepe Link</a>
+    </div>
+
+    <div id="menuHead">
+
+        <a href="/new_post">Новый мем!</a>
+
+    </div>
+
+    <div id="regAuth">
+        {% if current_user.is_authenticated %}
+            <a href="/user/{{current_user.get_id()}}">{{ current_user }} |</a>
+            <a href="/logout">Выход</a>
+        {% else %}
+            <a href="/login">Вход |</a>
+            <a href="/register">Регистрация</a>
+        {% endif %}
+
+
+    </div>
+</header>
+
+
+
+
+{% block body %}{% endblock %}
+
+
+
+</body>
+</html>
