@@ -1,96 +1,10 @@
-from flask import Flask, render_template, url_for, request, redirect
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_required, login_user, current_user, logout_user
-from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
-from datetime import datetime
-from os.path import join, dirname, realpath
 import os
-import upload
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'secret key'
-app.config['MAX_CONTENT_PATH'] = 20000000
-app.config['UPLOAD_FOLDER'] = join(dirname(realpath(__file__)), 'static/images/..')
-
-db = SQLAlchemy(app)
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
-
-
-class Post(db.Model, UserMixin):
-    title = db.Column(db.String(300))
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    filename = db.Column(db.String(300), nullable=False)
-    date = db.Column(db.DateTime, default=datetime.utcnow)
-
-    likes = db.relationship('Like', backref='post', lazy='dynamic')
-
-    def __repr__(self):
-        return '<Post %r>' % self.id
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    return db.session.query(User).get(user_id)
-
-
-class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), nullable=False)
-    email = db.Column(db.String(50), nullable=False)
-    password = db.Column(db.String(64), nullable=False)
-    is_admin = db.Column(db.Boolean, default=0)
-    posts = db.relationship('Post', backref='author', lazy='dynamic')
-    liked = db.relationship('Like', foreign_keys='Like.user_id', backref='user', lazy='dynamic')
-
-    profile_data = db.relationship('Profile_data', backref='user', uselist=False)
-
-    def like_post(self, post):
-        if not self.has_liked_post(post):
-            like = Like(user_id=self.id, post_id=post.id)
-            db.session.add(like)
-
-    def unlike_post(self, post):
-        if self.has_liked_post(post):
-            Like.query.filter_by(
-                user_id=self.id,
-                post_id=post.id).delete()
-
-    def has_liked_post(self, post):
-        return Like.query.filter(
-            Like.user_id == self.id,
-            Like.post_id == post.id).count() > 0
-
-    def set_password(self, password):
-        self.password = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password, password)
-
-    def __repr__(self):
-        return "{}".format(self.username)
-
-    def get_id(self):
-        return self.id
-
-
-class Like(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
-
-
-class Profile_data(db.Model):
-    gender = db.Column(db.String(50), nullable=False)
-    age = db.Column(db.Integer, nullable=False)
-    hobby = db.Column(db.String(50), nullable=False)
-    contacts = db.Column(db.String(50), nullable=False)
-
-    user_id = db.Column(db.Integer(), db.ForeignKey('user.id'), primary_key=True)
+from werkzeug.utils import secure_filename
+from app import app
+from flask import render_template, request, redirect, url_for
+from flask_login import login_required, login_user, current_user, logout_user
+from .models import User, Post, Like, Profile_data, db
+from .utils import *
 
 
 @app.route('/')
@@ -124,7 +38,6 @@ def delete_post(post_id):
     Post.query.filter_by(id=post_id).delete()
     Like.query.filter_by(post_id=post_id).delete()
     db.session.commit()
-
     return redirect('/home')
 
 
@@ -136,7 +49,7 @@ def new_post():
     if request.method == 'POST':
         file = request.files['file']
         title = request.form['title']
-        if file and upload.allowed_file(file.filename):
+        if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             new_post_db = Post(title=title, filename=filename, user_id=current_user.get_id())
@@ -144,7 +57,7 @@ def new_post():
             db.session.commit()
             return redirect('/home')
         else:
-            upload_message = 'Ваш фаел маст би jpg png или gif. Андерстэнд?'
+            upload_message = 'Файл должен иметь формат png, jpg или gif'
     return render_template("new_post.html", upload_message=upload_message, logged_user=logged_user)
 
 
@@ -232,6 +145,7 @@ def profile_edit():
         gender = request.form.get('gender')
         hobby = request.form.get('hobby')
         contacts = request.form.get('contacts')
+        profile_picture = request.files['file']
 
         if username == '' or age == '' or hobby == '' or contacts == '':
             message = 'Проверьте корректность данных'
@@ -251,10 +165,17 @@ def profile_edit():
         edited_profile.gender = gender
         edited_profile.hobby = hobby
         edited_profile.contacts = contacts
+
+        if profile_picture and allowed_file(profile_picture.filename):
+            filename = secure_filename(profile_picture.filename)
+            profile_picture.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            edited_profile.profile_picture = filename
         db.session.commit()
+
         return redirect('/user/' + str(current_user.get_id()))
 
-    return render_template("profile_edit.html", profile_data=profile_data, user=user_data, message=message, logged_user=logged_user)
+    return render_template("profile_edit.html", profile_data=profile_data, user=user_data, message=message,
+                           logged_user=logged_user)
 
 
 @app.route('/user/<int:user_id>')
@@ -270,7 +191,8 @@ def user(user_id):
 
     if user_data is None:
         return '<h2>Похоже, такого пользователя не существует</h2><br><a href ="/home">Вернуться</a>'
-    return render_template("user.html", profile_data=profile_data, user=user_data, show_overlap=show_overlap, logged_user=logged_user)
+    return render_template("user.html", profile_data=profile_data, user=user_data, show_overlap=show_overlap,
+                           logged_user=logged_user)
 
 
 @app.route('/admin_panel', methods=['POST', 'GET'])
@@ -286,7 +208,7 @@ def admin_panel():
     if request.method == 'POST':
         users_to_delete = ['#']
         for user_id in range(1, User.query.order_by(User.id.desc()).first().id + 1):
-            if str(request.form.get('delete'+str(user_id))) == 'on':
+            if str(request.form.get('delete' + str(user_id))) == 'on':
                 users_to_delete.append(user_id)
 
         for user_to_delete in users_to_delete:
@@ -307,24 +229,11 @@ def overlap():
         return '<h2>Вы должны лайкнуть как минимум 3 поста, чтобы получить совпадения</h2><br><a href ="/home">Вернуться</a>'
     message = ''
 
-    overlaps = []
     users = User.query.order_by(User.id.desc()).all()
-    for user_to_check in users:
-        if user_to_check.id != current_user.get_id():
-            overlaps.append([0, user_to_check.id, user_to_check.username])
+    overlaps = find_overlaps(users, current_user, Like)
 
-    for user_to_check in overlaps:
-        user_id = user_to_check[1]
-        user_likes = Like.query.filter_by(user_id=user_id).all()
-        for like in user_likes:
-            if Like.query.filter_by(user_id=current_user.get_id(), post_id=like.post_id).count()>0:
-                user_to_check[0] += 1
-    overlaps.sort(reverse=True)
-
-    print(overlaps)
     count = min([len(overlaps), 5])
     return render_template("overlap.html", message=message, overlaps=overlaps, count=count, logged_user=logged_user)
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+

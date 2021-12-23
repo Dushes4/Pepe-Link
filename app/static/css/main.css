@@ -122,10 +122,10 @@ li {
 }
 
 .edit {
-    margin-top:-20px;
+    margin-top: 28px;
     text-align: center;
     padding-bottom: 10px;
-    border: 1px solid black;
+    text-decoration: underline;
     padding: 0;
 }
 
@@ -146,4 +146,34 @@ table {
 
 td {
     padding: 10px;
+}
+
+
+
+
+.profile-border-out {
+    width: 502px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 260px;
+}
+
+
+.profile-border-in {
+    border: 1px solid black;
+    width: 298px;
+    height: 200px;
+    float: right;
+}
+
+
+.profile-picture {
+    border: 1px solid black;
+    width: 200px;
+    height: 200px;
+    float: left;
+}
+
+li {
+    list-style-type: none;
 }
